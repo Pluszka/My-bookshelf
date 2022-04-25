@@ -7,7 +7,10 @@ all_books = []
 
 @app.route('/')
 def home():
-    return render_template('index.html', books=all_books)
+    library = True
+    if len(all_books) < 1:
+        library = False
+    return render_template('index.html', books=all_books, length=library)
 
 
 @app.route("/add", methods=['POST', 'GET'])
