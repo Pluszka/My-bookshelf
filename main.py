@@ -18,7 +18,7 @@ class Shelf(db.Model):
 
 # db.create_all()
 
-@app.route('/')
+@app.route('/', methods=['POST', 'GET'])
 def home():
     all_books = db.session.query(Shelf).all()
     return render_template('index.html', books=all_books)
@@ -49,6 +49,14 @@ def edit():
     book_id = request.args.get('id')
     book_selected = Shelf.query.get(book_id)
     return render_template('edit.html', for_edit=book_selected)
+
+@app.route('/del')
+def delete():
+    to_delete = request.args.get('id')
+    to_delete = Shelf.query.get(to_delete)
+    db.session.delete(to_delete)
+    db.session.commit()
+    return redirect(url_for('home'))
 
 if __name__ == "__main__":
     app.run(debug=True)
