@@ -1,27 +1,39 @@
 from flask import Flask, render_template, request, redirect, url_for
 
+from flask_sqlalchemy import SQLAlchemy
+
 app = Flask(__name__)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Bookshelf.db'
+db = SQLAlchemy(app)
 
-all_books = []
+class Shelf(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(80), unique=True, nullable=False)
+    author = db.Column(db.String(120), nullable=False)
+    rating = db.Column(db.Float, nullable=False)
 
+    def __repr__(self):
+        return '<Shelf %r>' % self.username
+
+# db.create_all()
 
 @app.route('/')
 def home():
-    library = True
-    if len(all_books) < 1:
-        library = False
-    return render_template('index.html', books=all_books, length=library)
+    all_books = db.session.query(Shelf).all()
+    return render_template('index.html', books=all_books)
 
 
 @app.route("/add", methods=['POST', 'GET'])
 def add():
     if request.method == 'POST':
-        new = {
-            'title': request.form['title'],
-            'author': request.form['author'],
-            'rating': request.form['rating']
-        }
-        all_books.append(new)
+        new = Shelf(
+            title=request.form["title"],
+            author=request.form["author"],
+            rating=request.form["rating"]
+        )
+        db.session.add(new)
+        db.session.commit()
         return redirect(url_for('home'))
     return render_template('add.html')
 
